@@ -58,6 +58,7 @@ data MandrillEmailStatus = ES_Sent
                          | ES_Rejected
                          | ES_Invalid deriving Show
 
+makePrisms ''MandrillEmailStatus
 deriveJSON defaultOptions { constructorTagModifier = map toLower . drop 3 } ''MandrillEmailStatus
 
 
@@ -73,6 +74,7 @@ data MandrillRejectReason = RR_HardBounce
                           | RR_Unsigned
                           | RR_Rule deriving Show
 
+makePrisms ''MandrillRejectReason
 deriveJSON defaultOptions {
   constructorTagModifier = modRejectReason . drop 3
   } ''MandrillRejectReason
@@ -84,6 +86,8 @@ deriveJSON defaultOptions {
 data MandrillResponse k =
     MandrillSuccess k
   | MandrillFailure MandrillError deriving Show
+
+makePrisms ''MandrillResponse
 
 instance FromJSON k => FromJSON (MandrillResponse k) where
   parseJSON v = case (parseMaybe parseJSON v) :: Maybe k of
@@ -98,11 +102,14 @@ instance FromJSON k => FromJSON (MandrillResponse k) where
 --------------------------------------------------------------------------------
 data MandrillRecipientTag = To | Cc | Bcc deriving Show
 
+makePrisms ''MandrillRecipientTag
 deriveJSON defaultOptions { constructorTagModifier = map toLower } ''MandrillRecipientTag
 
 
 --------------------------------------------------------------------------------
 newtype MandrillEmail = MandrillEmail EmailAddress deriving Show
+
+makePrisms ''MandrillEmail
 
 instance ToJSON MandrillEmail where
   toJSON (MandrillEmail e) = String . TL.decodeUtf8 . toByteString $ e
@@ -141,6 +148,8 @@ instance Arbitrary MandrillRecipient where
 
 --------------------------------------------------------------------------------
 newtype MandrillHtml = MandrillHtml Blaze.Html
+
+makePrisms ''MandrillHtml
 
 unsafeMkMandrillHtml :: T.Text -> MandrillHtml
 unsafeMkMandrillHtml = MandrillHtml . Blaze.preEscapedToHtml
@@ -210,6 +219,8 @@ data Base64ByteString =
   | PlainBS B.ByteString
   -- ^ A plain Base64 ByteString which requires encoding.
   deriving Show
+
+makePrisms ''Base64ByteString
 
 instance ToJSON Base64ByteString where
   toJSON (PlainBS bs)      = String . TL.decodeUtf8 . Base64.encode $ bs
@@ -370,6 +381,8 @@ type MandrillTemplate = T.Text
 newtype MandrillDate = MandrillDate {
   fromMandrillDate :: UTCTime
   } deriving Show
+
+makePrisms ''MandrillDate
 
 instance ToJSON MandrillDate where
   toJSON = toJSON . fromMandrillDate
